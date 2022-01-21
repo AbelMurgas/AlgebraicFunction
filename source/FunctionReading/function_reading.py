@@ -98,6 +98,7 @@ class AlgebraicFunctionReading:
         6 - The range of the grade allow is 1 to 5\n
         7 - The name of variable need be unique\n
         8 - Can use all abecedary letter as variable except c or k (constant variable)\n
+        9 - The only keys allow is the letter along or with a numer that represent the grade example: x2,x3,u2... etc\n
         Args:
             name_e (int): Number of error
             extra_message (str): Extra message with the error.
@@ -110,7 +111,8 @@ class AlgebraicFunctionReading:
             5: "The type of the data is not what was expected ",
             6: "The range of the grade allow is 1 to 5 ",
             7: "Not empty values allow ",
-            8: "Can use all abecedary letter as variable except c or k (constant variable) "
+            8: "Can use all abecedary letter as variable except c or k (constant variable) ",
+            9: "The only keys allow is the letter along or with a numer that represent the grade example: x2,x3,u2... etc "
         }
         if error.get(n_error):
             return '\033[91m' + error.get(n_error) + extra_message + '\033[0m'
@@ -130,21 +132,43 @@ class AlgebraicFunctionReading:
         letter_variable = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm',
                            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'q', 'w', 'x', 'y', 'z']
         list_key = list(dict.keys())
+        # Validated the first letter is a allow letter_variable
         try:
             list_key_first = [i[0].lower() for i in list_key]
         except:
             raise Exception(self.__send_errors(
                 8, f"Your variable \033[1m {list_key}"))
-
         have_allow_variable = all(
             letter in letter_variable for letter in list_key_first)
-
         if not have_allow_variable:
             raise Exception(self.__send_errors(
                 8, f"Your variable name \033[1m {list_key}"))
+        # Validated that the second char is a number or not and the len is not more thant 2
+        for i in list_key:
+            print(len(i))
+            if not len(i) < 3:
+                raise Exception(self.__send_errors(
+                    9, f"Your variable \033[1m {list_key}"))
+            if not len(i) == 1:
+                try:
+                    test_int = int(i[1])
+                except:
+                    raise Exception(self.__send_errors(
+                        9, f"Your variable \033[1m {list_key}"))
+                # Validate that the second number is more than 0 and less than 6
+                if test_int < 0 or test_int > 5:
+                    raise Exception(self.__send_errors(
+                        6, f"Your variable grade \033[1m {i[0]} = {i[1]}"))
+        # Validate value is number
+        if not all(isinstance(n, (int, float)) for n in list(dict.values)):
+            raise Exception(self.__send_errors(
+                3, f"The values of your variable: \033[1m {i[0]} = {i[1]}"))
 
     def __validate_str_function():
+        # Validates structure of the function # y=2x2-x+2
+        # TODO: divide the function in equal symbol (check if this symbol exist)
+        # TODO: check if the initial and the last character of the second argument of the function is not a symbol
         pass
 
 
-new = AlgebraicFunctionReading(dict_function={'A': 2, 'Z': 2})
+

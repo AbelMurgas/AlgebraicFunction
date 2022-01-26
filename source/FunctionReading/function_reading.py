@@ -1,3 +1,6 @@
+# %%
+
+
 class AlgebraicFunctionReading:
 
     """
@@ -9,7 +12,7 @@ class AlgebraicFunctionReading:
         #   args:
             2 args refers to a lineal funtion example: (2,3) = fx = 2x + 3\n
             3 args refers to a cuadratic funtion example: (2,3,4) = fx = 2x2 + 3x + 4\n
-            therefor the more arguments increase the grade of the function
+            therefor the more arguments increase the degree of the function
 
         #   Keyword arguments:
         #  lineal example:
@@ -26,16 +29,17 @@ class AlgebraicFunctionReading:
 
             list_function -- list of the function example: =[1,2,30]
         """
-        self.__verify_arg_kwargs(args, kwargs)
         # ---- default attribute ----
         self.list_function = []
         self.dict_function = {}
         self.str_function = ""
-        self.grade = 0
+        self.degree = 0
         self.variable_letter = ''
+        self.separate_argum = []
         self.constant_value = 0
-        self.__letter_variable = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm',
-                           'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'q', 'w', 'x', 'y', 'z']
+        self.__allow_variable = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm',
+                                 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'q', 'w', 'x', 'y', 'z']
+        self.__verify_arg_kwargs(args, kwargs)
 
     def __verify_arg_kwargs(self, args, kwargs):
         """
@@ -49,7 +53,7 @@ class AlgebraicFunctionReading:
             if not all(isinstance(n, (int, float)) for n in list(args)):
                 raise Exception(self.__sed_errors(
                     3, f"Your arguments:\033[1m {args}"))
-            self.grade = len(args)-1
+            self.degree = len(args)-1
             self.list_function = list(args)
         else:
             if not len(kwargs) == 1:
@@ -68,10 +72,10 @@ class AlgebraicFunctionReading:
                     if not all(isinstance(n, (int, float)) for n in list(kwargs.values())[0]):
                         raise Exception(self.__send_errors(
                             3, f"Your arguments:\033[1m {args}"))
-                    self.grade = len(list(kwargs.values())[0])
+                    self.degree = len(list(kwargs.values())[0])
                     if not len(list(kwargs.values())[0]) > 1 and len(list(kwargs.values())[0]) < 5:
                         raise Exception(self.__send_errors(
-                            6, f"The grade of the function received: \033[1m {self.grade}"))
+                            6, f"The degree of the function received: \033[1m {self.degree}"))
                     self.list_function = list(list(kwargs.values())[0])
 
                 elif index == 1:  # dict
@@ -88,7 +92,8 @@ class AlgebraicFunctionReading:
                     if not type(list(kwargs.values())[0]) == str:
                         raise Exception(self.__send_errors(
                             5, f", Expected \033[1m <class 'str'> \033[0;91m Obtained \033[1m {type(list(kwargs.values())[0])}"))
-                    self.__validate_str_function(kwargs[list(kwargs.keys())[0]])
+                    self.__validate_str_function(
+                        kwargs[list(kwargs.keys())[0]])
 
     def __send_errors(self, n_error, extra_message=""):
         """
@@ -99,10 +104,10 @@ class AlgebraicFunctionReading:
         3 - Only Allowed numbers (int and float) as arg\n
         4 - Only can use args o kwargs(to access the others method of representation of a function) , but can't use both at same time\n
         5 - The type of the data is not what was expected\n
-        6 - The range of the grade allow is 1 to 5\n
+        6 - The range of the degree allow is 1 to 5\n
         7 - The name of variable need be unique\n
         8 - Can use all abecedary letter as variable except c or k (constant variable)\n
-        9 - The only keys allow is the letter along or with a numer that represent the grade example: x2,x3,u2... etc\n
+        9 - The only keys allow is the letter along or with a numer that represent the degree example: x2,x3,u2... etc\n
         10 - List function need have format like f(x)=2x2-x+23
         11 - The function  must be simplified
         Args:
@@ -115,12 +120,13 @@ class AlgebraicFunctionReading:
             3: "Only Allowed numbers (int and float) as arg ",
             4: "Only can use args o kwargs(to access the others method of representation of a function) , but can't use both at same time ",
             5: "The type of the data is not what was expected ",
-            6: "The range of the grade allow is 1 to 5 ",
+            6: "The range of the degree allow is 1 to 5 ",
             7: "Not empty values allow ",
             8: "Can use all abecedary letter as variable except c or k (constant variable) ",
-            9: "The only keys allow is the letter along or with a numer that represent the grade example: x2,x3,u2... etc ",
+            9: "The only keys allow is the letter along or with a numer that represent the degree example: x2,x3,u2... etc ",
             10: "Error in the str function format ",
-            11: "The function  must be simplified "
+            11: "The function  must be simplified ",
+            12: "Only admit one variable "
         }
         if error.get(n_error):
             return '\033[91m' + error.get(n_error) + extra_message + '\033[0m'
@@ -167,52 +173,100 @@ class AlgebraicFunctionReading:
                 # Validate that the second number is more than 0 and less than 6
                 if test_int < 0 or test_int > 5:
                     raise Exception(self.__send_errors(
-                        6, f"Your variable grade \033[1m {i[0]} = {i[1]}"))
+                        6, f"Your variable degree \033[1m {i[0]} = {i[1]}"))
         # Validate value is number
         if not all(isinstance(n, (int, float)) for n in list(function.values)):
             raise Exception(self.__send_errors(
                 3, f"The values of your variable: \033[1m {i[0]} = {i[1]}"))
 
-    def __validate_str_function(self,function:str):
+    def __validate_str_function(self, function: str):
         """
-        This funtion validate if the list function pass is correct and complies with the rules
-        max grade 5
-        correct ecuation
+        This funtion validate if the string function pass is correct and complies with the rules
+        only allow one variable, the max degree is 5 
         Args:
             list (list): list that will test
         """
-        letter_variable = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm',
-                           'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'q', 'w', 'x', 'y', 'z']
-        list_allow_symbol = ['+','-','/','*']
+
+        def separate_arguments(term: str, allow_op: list = ['-', '+']) -> list:
+            """
+            This function separate a string function in it arguments and add to list
+
+            Args:
+                term (str): the string function to be separated
+                allow_op (list, optional): list of the operaction symbol that use to separate the string. Defaults to ['-','+']
+
+            Returns:
+                list: list with each arguments
+            """
+
+            # check if the first letter have subtract or add symbol, if not put default add
+            list_arguments = []
+            if not term[0] in allow_op:
+                term = '+' + term
+            accumulator = ""
+            for i in range(len(term)):
+                if i == 0:
+                    accumulator += term[0]
+                    continue
+                if not term[i] in allow_op:
+                    accumulator = accumulator + term[i]
+                    if i == len(term)-1:
+                        list_arguments.append(accumulator)
+                else:
+                    list_arguments.append(accumulator)
+                    accumulator = term[i]
+            # In case the term equal +0 or -0 or -0x ... etc
+            list_arguments = [
+                i for i in list_arguments if list_arguments[list_arguments.index(i)][1] != '0']
+            return list_arguments
+
+        list_allow_symbol = ['+', '-']
         # divide the function in equal symbol (check if this symbol exist)
         if not '=' in function:
-            raise Exception (self.__send_errors(10,f"your input string function: {function}"))
+            raise Exception(self.__send_errors(
+                10, f"your input string function: {function}"))
         terms = function.split("=")
         if not len(terms) == 2:
-            raise Exception (self.__send_errors(10,f"your input string function: {function}"))
+            raise Exception(self.__send_errors(
+                10, f"your input string function: {function}"))
         term_r = terms[1]
         # check if the initial and the last character of the second argument of the function is not a symbol (except + and -)
-        print(term_r[0].isnumeric())
-        if not term_r[0].isnumeric() and term_r[0] not in list_allow_symbol[:2] or not term_r[-1].isnumeric():
-            raise Exception (self.__send_errors(10,f"your input string function: {function}"))
-        # check dont repeat symbol like 2++3-4 
-        # TODO: Add validate variable, and correct format 
+        if (not term_r[0].isnumeric() and term_r[0] not in list_allow_symbol) or (not term_r[-1].isnumeric() and term_r[-1] not in self.__allow_variable):
+            raise Exception(self.__send_errors(
+                10, f"your input string function: {function}"))
+        # search if have variable or is a constant funciton (if exist save what letter use)
+        for i in term_r:
+            if i in self.__allow_variable:
+                if not self.variable_letter:
+                    self.variable_letter = i
+                    continue
+                else:
+                    if not i == self.variable_letter:
+                        raise Exception(self.__send_errors(
+                            12, f"your input string function: {function}"))
         before_is_num = term_r[0].isnumeric()
+        # TODO: check error in the logic
         for i in range(len(term_r)):
             if i == 0:
                 continue
             if not term_r[i].isnumeric():
-                if not term_r[i] in list_allow_symbol:
-                    raise Exception (self.__send_errors(10,f"your input string function: {function}"))
-                if not before_is_num:
-                    raise Exception (self.__send_errors(10,f"your input string function: {function}"))
-                before_is_num = False
-                continue
+                if not term_r[i] in list_allow_symbol and not term_r[i] == self.variable_letter:
+                    raise Exception(self.__send_errors(
+                        11, f"your input string function: {function}"))
+                # check dont repeat symbol like 2++3-4
+                if not before_is_num and not term_r[i-1] == self.variable_letter:
+                    raise Exception(self.__send_errors(
+                        10, f"your input string function: {function}"))
+                if term_r[i] == self.variable_letter:
+                    before_is_num = False
+                    continue
+                else:  # means that repeat a symbol like ++ or --
+                    raise Exception(self.__send_errors(
+                        10, f"your input string function: {function}"))
             before_is_num = True
-
+        self.separate_argum = separate_arguments(term_r)
+        # TODO: check the highest degree of the variable
         # TODO: make test
         pass
-
-new = AlgebraicFunctionReading(str_function="f(x)=+2-3*8/40")
-
-
+# %%
+new = AlgebraicFunctionReading(str_function="y=2x+0x2-0x-0")

@@ -1,4 +1,4 @@
-from source.FunctionReading.function_reading import AlgebraicFunctionReading as afr
+from source.FunctionReadingX.Function_Reading import AlgebraicFunctionReading as afr
 
 def test_error_symbol():
     try:

@@ -1,4 +1,6 @@
 # %%
+from source.FunctionReadingX.checkstrfunction.check_str_function import CheckStrFunction
+
 
 class AlgebraicFunctionReading:
 
@@ -36,8 +38,9 @@ class AlgebraicFunctionReading:
         self.variable_letter = ''
         self.separate_argum = []
         self.constant_value = 0
-        self.__allow_variable = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm',
-                                 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'q', 'w', 'x', 'y', 'z']
+        self.allow_variable = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'l', 'm',
+                               'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'q', 'w', 'x', 'y', 'z']
+        self.have_variable = True
         self.__verify_arg_kwargs(args, kwargs)
 
     def __verify_arg_kwargs(self, args, kwargs):
@@ -185,86 +188,8 @@ class AlgebraicFunctionReading:
         Args:
             list (list): list that will test
         """
+        new_check = CheckStrFunction()
 
-        #  -------------------- Funcions declaration --------------------
-        def separate_arguments(term: str, allow_op: list = ['-', '+']) -> list:
-            """
-            This function separate a string function in it arguments and add to list
-
-            Args:
-                term (str): the string function to be separated
-                allow_op (list, optional): list of the operaction symbol that use to separate the string. Defaults to ['-','+']
-
-            Returns:
-                list: list with each arguments
-            """
-
-            # check if the first letter have subtract or add symbol, if not put default add
-            list_arguments = []
-            if not term[0] in allow_op:
-                term = '+' + term
-            accumulator = ""
-            for i in range(len(term)):
-                if i == 0:
-                    accumulator += term[0]
-                    continue
-                if not term[i] in allow_op:
-                    accumulator = accumulator + term[i]
-                    if i == len(term)-1:
-                        list_arguments.append(accumulator)
-                else:
-                    list_arguments.append(accumulator)
-                    accumulator = term[i]
-            # In case the term equal +0 or -0 or -0x ... etc
-            list_arguments = [
-                i for i in list_arguments if list_arguments[list_arguments.index(i)][1] != '0']
-            return list_arguments
-
-        def check_doubles(term: str, variable_in_use: str, list_operation_allow: list = ['-', '+']) -> bool:
-            """
-            this function check if in the term are doubles of variables or operaction symbols like 2xx3++2
-
-            Args:
-                term (str): term that will to check
-                variable_in_use (str): variable use in the function
-                list_operation_allow (list, optional): list of the operation symbols allow. Defaults to ['-','+'].
-
-            Returns:
-                bool: True if the term pass the proof or false if not
-            """
-
-            for i in range(len(term)):
-                if i == 0:
-                    before_is_variable = term[i] == variable_in_use
-                    before_is_op = term[i] in list_operation_allow
-                    continue
-                if term[i] == variable_in_use and before_is_variable:
-                    return False
-                elif term[i] in list_operation_allow and before_is_op:
-                    return False
-                before_is_variable = term[i] == variable_in_use
-                before_is_op = term[i] in list_operation_allow
-            return True
-
-        def check_degree_range(list_argms: list, variable_in_use: str = 'x') -> bool:
-            # if se
-            max_grade = 0
-            max_grade = 0
-            for i in list_argms:
-                if variable_in_use in i:
-                    argument_separate = i.split(variable_in_use)
-                    if not len(argument_separate) == 1:
-                        if len(argument_separate[1]) == 1 and (int(argument_separate[1]) > 0 and int(argument_separate[1]) < 6) :
-                            grade = int(argument_separate[1])
-                        elif len(argument_separate[1]) == 0:
-                            grade = 1
-                        else:
-                            return 0
-                        if max_grade < grade:
-                                max_grade = grade
-            return max_grade
-
-        #  ----------------------------------------
         list_allow_symbol = ['+', '-']
         # divide the function in equal symbol (check if this symbol exist)
         if not '=' in function:
@@ -276,29 +201,37 @@ class AlgebraicFunctionReading:
                 10, f"your input string function: {function}"))
         term_r = terms[1]
         # check if the initial and the last character of the second argument of the function is not a symbol (except + and -)
-        if (not term_r[0].isnumeric() and term_r[0] not in list_allow_symbol) or (not term_r[-1].isnumeric() and term_r[-1] not in self.__allow_variable):
+        if (not term_r[0].isnumeric() and term_r[0] not in list_allow_symbol) or (not term_r[-1].isnumeric() and term_r[-1] not in self.allow_variable):
             raise Exception(self.__send_errors(
                 10, f"your input string function: {function}"))
         # search if have variable or is a constant funciton (if exist save what letter use)
-        for i in term_r:
-            if i in self.__allow_variable:
-                if not self.variable_letter:
-                    self.variable_letter = i
-                    continue
-                else:
-                    if not i == self.variable_letter:
-                        raise Exception(self.__send_errors(
-                            12, f"your input string function: {function}"))
+        variable_use = new_check.check_variable_in_use(
+            term_r, self.allow_variable)
+        if variable_use:
+            if variable_use == 'nv':
+                raise Exception(self.__send_errors(
+                                10, f"your input string function: {function}"))
+        else:
+            self.have_variable = False
+        if not new_check.check_doubles(term_r,variable_use):
+            raise Exception(self.__send_errors(
+                                10, f"your input string function: {function}"))
+        self.separate_argum = new_check.separate_arguments(term_r)
 
-        if not check_doubles(term_r, self.variable_letter):
+        if not self.have_variable and len(self.separate_argum) > 1:
             raise Exception(self.__send_errors(
-                            10, f"your input string function: {function}"))
-        self.separate_argum = separate_arguments(term_r)
-        if not check_degree_range(self.separate_argum):
-            raise Exception(self.__send_errors(
-                            6, f"your input string function: {function}"))
-        pass
+                11, f"your input string function: {function}"))
+        elif not self.have_variable:
+            self.grade = 0
+        else:
+            grade = new_check.check_degree_range(self.separate_argum)
+            if not grade:
+                raise Exception(self.__send_errors(
+                                6, f"your input string function: {function}"))
+            self.grade = grade
 
 
 # %%
-new = AlgebraicFunctionReading(str_function="y=+2x5-2x4+x3-2x2+x+0")
+# new = AlgebraicFunctionReading(str_function="y=+2xx5-2x")
+
+# %%
